@@ -5,7 +5,8 @@ After=network.target
 [Service]
 User=wgagent
 Group=wgagent
-ExecStart=/opt/wgagent/venv/bin/python3 -m /opt/wgagent/cli/wgagent.py run
+ExecStart=/opt/wgagent/venv/bin/python3 /opt/wgagent/cli/wgagent.py run
+WorkingDirectory=/opt/wgagent
 Restart=always
 
 [Install]

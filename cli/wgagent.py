@@ -6,9 +6,9 @@ import subprocess
 import sys
 import typer
 import uvicorn
-from pkg import agent
 import shutil
 from pathlib import Path
+from pkg import agent
 
 app = typer.Typer(help="wgagent - A WireGuard VPN local configuration manager agent")
 
@@ -34,8 +34,11 @@ def status():
 @app.command()
 def deploy():
     typer.echo("[+] Creando usuario wgagent")
-    subprocess.run(["sudo", "id", "-u", "wgagent"], check=False)
-    subprocess.run(["sudo", "useradd", "-r", "-s", "/usr/sbin/nologin", "wgagent"], check=False)
+    result = subprocess.run(["id", "-u", "wgagent"], capture_output=True, text=True)
+    if result.returncode != 0:
+        subprocess.run(["sudo", "useradd", "-M", "-r", "-s", "/usr/sbin/nologin", "wgagent"], check=True)
+    else:
+        typer.echo("    Usuario wgagent ya existe")
 
     typer.echo("[+] Creando directorio de configuración")
     subprocess.run(["sudo", "mkdir", "-p", "/etc/wgagent"], check=True)
@@ -55,12 +58,7 @@ def deploy():
         "/usr/bin/wg-quick up wg0, "
         "/usr/bin/wg-quick down wg0\n"
     )
-    subprocess.run(
-        ["sudo", "tee", sudoers],
-        input=sudoers_content,
-        text=True,
-        check=True
-    )
+    subprocess.run(["sudo", "tee", sudoers], input=sudoers_content, text=True, check=True)
     subprocess.run(["sudo", "chmod", "440", sudoers], check=True)
 
     typer.echo("[+] Creando virtualenv en /opt/wgagent/venv")
@@ -68,16 +66,34 @@ def deploy():
 
     typer.echo("[+] Instalando dependencias en el virtualenv")
     subprocess.run([
-        "/opt/wgagent/venv/bin/pip", "install", "--upgrade", "pip", "typer", "fastapi", "pydantic"
+        "/opt/wgagent/venv/bin/pip", "install", "--upgrade", "pip", "typer", "fastapi", "pydantic", "uvicorn"
     ], check=True)
 
     typer.echo("[+] Instalando y arrancando systemd")
     service_path = "/etc/systemd/system/wgnet-agent.service"
-    subprocess.run(["sudo", "cp", "/opt/wgagent/systemd/wgnet-agent.service", service_path], check=True)
+    service_content = f"""
+[Unit]
+Description=wgnet-agent - WireGuard configuration agent
+After=network.target
+
+[Service]
+User=wgagent
+Group=wgagent
+WorkingDirectory=/opt/wgagent
+Environment=PYTHONPATH=/opt/wgagent
+ExecStart=/opt/wgagent/venv/bin/python3 -m cli.wgagent run
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+"""
+    subprocess.run(["sudo", "tee", service_path], input=service_content, text=True, check=True)
+    subprocess.run(["sudo", "chmod", "644", service_path], check=True)
+
     subprocess.run(["sudo", "systemctl", "daemon-reload"], check=True)
     subprocess.run(["sudo", "systemctl", "enable", "--now", "wgnet-agent"], check=True)
 
-    typer.echo("[✓] wgnet-agent desplegado correctamente")
+    typer.echo("[X] wgnet-agent desplegado correctamente")
 
 
 @app.command()
@@ -89,11 +105,11 @@ def destroy():
     subprocess.run(["sudo", "systemctl", "daemon-reload"], check=False)
 
     typer.echo("[+] Eliminando usuario y configuración")
-    subprocess.run(["sudo", "userdel", "wgagent"], check=False)
+    subprocess.run(["sudo", "userdel", "-r", "wgagent"], check=False)
     subprocess.run(["sudo", "rm", "-rf", "/etc/wgagent"], check=False)
     subprocess.run(["sudo", "rm", "-rf", "/opt/wgagent"], check=False)
 
-    typer.echo("[✓] wgnet-agent eliminado")
+    typer.echo("[X] wgnet-agent eliminado")
 
 @app.command()
 def run():
