@@ -1,4 +1,4 @@
-# wgnet-weaver
+# wgnet-agent
 CLI tool for a simple local agent to administrate the wg0 interface in VPN connections.
 
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
