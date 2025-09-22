@@ -1,0 +1,12 @@
+[Unit]
+Description=wgnet-agent - WireGuard configuration agent
+After=network.target
+
+[Service]
+User=wgagent
+Group=wgagent
+ExecStart=/opt/wgagent/venv/bin/python3 -m /opt/wgagent/cli/wgagent.py run
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
