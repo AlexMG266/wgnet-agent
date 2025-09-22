@@ -1,5 +1,5 @@
 # wgnet-weaver
-CLI tool for automated WireGuard mesh network management. Generate, manage, and monitor secure VPN topologies for distributed teams.
+CLI tool for a simple local agent to administrate the wg0 interface in VPN connections.
 
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -19,15 +19,15 @@ CLI tool for automated WireGuard mesh network management. Generate, manage, and 
 1. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/AlexMG266/wgnet-weaver.git
-cd wgnet-weaver
+git clone https://github.com/AlexMG266/wgnet-agent.git
+cd wgnet-agent
 ```
 
 2. Instalar dependencias en el entorno y ejecutar el proyecto:
 
 ````bash
 make install 
-python -m cli.wgnet --help
+python -m cli.wgagent --help
 make run ARGS="--help"  
 ````
 
