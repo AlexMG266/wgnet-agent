@@ -26,12 +26,22 @@ cd wgnet-agent
 2. Instalar dependencias en el entorno y ejecutar el proyecto:
 
 ````bash
-make install 
-python -m cli.wgagent --help
-make run ARGS="--help"  
+make install   
 ````
 
-3. Limpiar el proyecto
+3. Desplegar el agente en la maquina host
+```bash
+make run ARGS="deploy"
+python3 -m cli.wgagent deploy
+```
+
+4. Destruir al agente
+```bash
+make run ARGS="destroy"
+python3 -m cli.wgagent destroy
+```
+
+5. Limpiar el proyecto
 ```bash
 make clean      # Limpieza de cache python 
 make clean-all  # Limpieza total del proyecto 
